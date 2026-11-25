@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       # window tests skip themselves where there is no display (Linux runner)
       - run: uv run --extra dev pytest -q
   security:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv venv && uv pip install -e ".[dev]" pip-audit && .venv/bin/pip-audit --skip-editable
       # CLI full-history scan: the action diffs `first-commit^..last`, which fails when the pushed range starts at a root commit
       - run: |
