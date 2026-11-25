@@ -79,11 +79,13 @@ def _shot():
 
 def via_gemini(png, key="", note=""):
     key = key or _key()
-    if not key: raise RuntimeError("no Gemini key: set GEMINI_API_KEY or pick gemini in the window and press Redo")
-    r = requests.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-                      headers={"x-goog-api-key": key}, timeout=120, json={"contents": [{"parts": [
-                          {"text": _prompt(plain=True, note=note)},
-                          {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(png).decode()}}]}]})
+    if not key: raise RuntimeError("no Gemini key: put GEMINI_API_KEY in .env, or pick gemini in the window and press Redo")
+    body = {"contents": [{"parts": [{"text": _prompt(plain=True, note=note)},
+                                    {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(png).decode()}}]}]}
+    # model names get retired (2.5-flash is closed to new keys) or overloaded (503): try the next one. GEMINI_MODEL in .env goes first
+    for m in [x for x in (_env("GEMINI_MODEL"), "gemini-3.5-flash", "gemini-flash-latest") if x]:
+        r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent", headers={"x-goog-api-key": key}, timeout=120, json=body)
+        if r.status_code not in (404, 429, 500, 503): break
     r.raise_for_status()
     return r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
 

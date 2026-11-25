@@ -5,6 +5,13 @@ from draftbox import hotkey
 def boom(*a, **k): raise RuntimeError("x")
 
 
+@pytest.fixture(autouse=True)
+def _no_real_env(monkeypatch, tmp_path):
+    """The developer's real .env / ~/.draftbox must never leak into tests (it would use a real key)."""
+    monkeypatch.chdir(tmp_path); monkeypatch.setattr(hotkey.providers, "HOME", str(tmp_path / "nohome"))
+    for k in ("GEMINI_API_KEY", "GEMINI_MODEL", "OLLAMA_MODEL"): monkeypatch.delenv(k, raising=False)
+
+
 def test_auto_prefers_claude_then_ollama_never_gemini(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "k")
     monkeypatch.setattr(hotkey, "via_gemini", lambda *a: 1 / 0)
@@ -144,3 +151,13 @@ def test_key_is_read_from_dotenv(monkeypatch, tmp_path):
     (tmp_path / ".env").write_text('# c\nOLLAMA_MODEL=x\nGEMINI_API_KEY="abc123"\n', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     assert hotkey._key() == "abc123"
+
+
+def test_gemini_tries_next_model_when_one_is_gone_or_busy(monkeypatch):
+    urls = []
+    class R:
+        def __init__(s, c): s.status_code = c; s.ok = c == 200
+        def raise_for_status(s): assert s.ok
+        def json(s): return {"candidates": [{"content": {"parts": [{"text": " hi "}]}}]}
+    monkeypatch.setattr(hotkey.requests, "post", lambda u, **k: (urls.append(u), R(404 if len(urls) == 1 else 200))[1])
+    assert hotkey.via_gemini(b"p", key="k") == "hi" and len(urls) == 2 and "gemini-3.5-flash" in urls[0] and "gemini-flash-latest" in urls[1]
