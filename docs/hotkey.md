@@ -44,7 +44,7 @@ If the mail needs no reply (newsletter, notification) you only get a notificatio
 | `auto` (default) | Tries the logged-in `claude` CLI, then your own Ollama. Never Gemini. | Your Claude account, or nowhere (Ollama) |
 | `claude` | The `claude` CLI, logged in on this PC | Claude |
 | `ollama` | Your own model, free and offline. `ollama pull llama3.2-vision` once. `OLLAMA_MODEL` picks another. | Never leaves the PC |
-| `gemini` | Extra quality. Key from `GEMINI_API_KEY`, or pasted once in the window (saved in `~/.draftbox/gemini.key`) | **Google. The whole screen, not just the mail.** Close other windows first |
+| `gemini` | Extra quality. Key from `GEMINI_API_KEY` (env var or a `.env` file, see `.env.example`), or pasted once in the window (saved in `~/.draftbox/gemini.key`) | **Google. The whole screen, not just the mail.** Close other windows first |
 
 Example: `draftbox hotkey --engine ollama`.
 

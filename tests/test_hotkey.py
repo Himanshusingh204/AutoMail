@@ -136,3 +136,11 @@ def test_no_email_and_failure_are_shown_not_swallowed(monkeypatch):
     monkeypatch.setattr(hotkey, "draft_from_screen", lambda e: (_ for _ in ()).throw(RuntimeError("boom")))
     hotkey._handle("auto")
     assert "NO EMAIL" in shown[0] and shown[1].startswith("Failed: boom")
+
+
+def test_key_is_read_from_dotenv(monkeypatch, tmp_path):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setattr(hotkey.providers, "HOME", str(tmp_path / "home"))
+    (tmp_path / ".env").write_text('# c\nOLLAMA_MODEL=x\nGEMINI_API_KEY="abc123"\n', encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    assert hotkey._key() == "abc123"

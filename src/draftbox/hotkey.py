@@ -41,9 +41,21 @@ def _read(n, d=""):
     return chr(10).join(l for l in t.splitlines() if not l.lstrip().startswith("#")).strip() or d
 
 
+def _env(name):
+    """Environment variable first, then a .env file in the current folder or ~/.draftbox (NAME=value lines)."""
+    if os.environ.get(name): return os.environ[name]
+    for d in (os.getcwd(), providers.HOME):
+        try:
+            for l in open(os.path.join(d, ".env"), encoding="utf-8"):
+                k, _, v = l.partition("=")
+                if k.strip() == name and v.strip().strip("\"'"): return v.strip().strip("\"'")
+        except OSError: pass
+    return ""
+
+
 def _key():
     p = os.path.join(providers.HOME, "gemini.key")
-    return os.environ.get("GEMINI_API_KEY") or (open(p).read().strip() if os.path.exists(p) else "")
+    return _env("GEMINI_API_KEY") or (open(p).read().strip() if os.path.exists(p) else "")
 
 
 def _prompt(plain=False, note=""):  # plain: for engines that get the image inline instead of reading shot.png
@@ -94,7 +106,7 @@ OLLAMA = "http://localhost:11434"
 def via_ollama(png, note=""):
     """Own model on this device: nothing leaves the PC. Needs a vision model (ollama pull llama3.2-vision)."""
     names = [x["name"] for x in requests.get(OLLAMA + "/api/tags", timeout=5).json()["models"]]
-    m = os.environ.get("OLLAMA_MODEL") or next((n for n in names if any(k in n for k in ("vision", "vl", "llava", "gemma3"))), "")
+    m = _env("OLLAMA_MODEL") or next((n for n in names if any(k in n for k in ("vision", "vl", "llava", "gemma3"))), "")
     if not m: raise RuntimeError("no vision model in Ollama. Run: ollama pull llama3.2-vision")
     r = requests.post(OLLAMA + "/api/chat", timeout=300, json={"model": m, "stream": False, "messages": [
         {"role": "user", "content": _prompt(plain=True, note=note), "images": [base64.b64encode(png).decode()]}]})
