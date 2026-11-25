@@ -109,6 +109,7 @@ def draft_from_screen(engine="auto"):
 
 
 CRLF = chr(13) + chr(10)
+NL = chr(10)
 
 
 def mailto(text):
@@ -187,14 +188,23 @@ def review(text, png=None, engine="auto"):
     r.focus_force(); r.mainloop()
 
 
+def _popup(msg):
+    """Balloon toasts are easy to miss (Focus Assist hides them), so a result that is not a draft also gets a dialog and a console line."""
+    print(msg, flush=True); toast(msg[:120])
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        r = tk.Tk(); r.withdraw(); r.attributes("-topmost", True); messagebox.showinfo("draftbox", msg, parent=r); r.destroy()
+    except Exception: pass
+
+
 def _handle(engine):
-    toast("Reading screen...")
+    toast("Reading screen... (5-30 seconds)")
     try:
         d, png = draft_from_screen(engine)
-        if d.startswith(("NO EMAIL", "NO REPLY")): return toast(d[:120])
-        print("\n--- draft ---\n" + d, flush=True); review(d, png, engine)
-    except Exception as e:
-        print("failed:", e, flush=True); toast("Failed: " + str(e)[:80])
+        if d.startswith(("NO EMAIL", "NO REPLY")): return _popup(d + (NL * 2 + "Open the full mail on screen, then press the key again." if d.startswith("NO EMAIL") else ""))
+        print(NL + "--- draft ---" + NL + d, flush=True); review(d, png, engine)
+    except Exception as e: _popup("Failed: " + str(e)[:300])
 
 
 def listen(engine="auto", vk=0x44):

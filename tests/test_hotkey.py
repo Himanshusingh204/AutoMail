@@ -126,3 +126,13 @@ def test_window_gemini_asks_key_once_and_saves_it(monkeypatch, tmp_path):
 
 def test_rewrite_note_reaches_every_engine_prompt():
     assert "REWRITE" in hotkey._prompt(note="Previous draft: x") and "REWRITE" not in hotkey._prompt()
+
+
+def test_no_email_and_failure_are_shown_not_swallowed(monkeypatch):
+    shown = []
+    monkeypatch.setattr(hotkey, "_popup", shown.append); monkeypatch.setattr(hotkey, "toast", lambda m: None)
+    monkeypatch.setattr(hotkey, "draft_from_screen", lambda e: ("NO EMAIL ON SCREEN", b"p"))
+    hotkey._handle("auto")
+    monkeypatch.setattr(hotkey, "draft_from_screen", lambda e: (_ for _ in ()).throw(RuntimeError("boom")))
+    hotkey._handle("auto")
+    assert "NO EMAIL" in shown[0] and shown[1].startswith("Failed: boom")
