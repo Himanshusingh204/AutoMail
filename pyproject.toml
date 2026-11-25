@@ -3,7 +3,7 @@ name = "draftbox"
 version = "0.2.0"
 description = "Drafts email replies for Gmail/Outlook. Never sends."
 requires-python = ">=3.11"
-dependencies = ["fastapi", "uvicorn", "google-api-python-client", "google-auth-oauthlib", "keyring", "requests", "msal", "pillow", "pynput; sys_platform != 'win32'"]
+dependencies = ["fastapi", "uvicorn", "google-api-python-client", "google-auth-oauthlib", "keyring", "requests", "msal", "pillow", "pynput; sys_platform == 'darwin'"]
 
 [project.optional-dependencies]
 dev = ["pytest", "httpx"]

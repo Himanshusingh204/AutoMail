@@ -110,7 +110,7 @@ def test_window_redo_applies_change_request_and_survives_failure(monkeypatch):
 
 
 def test_window_gemini_asks_key_once_and_saves_it(monkeypatch, tmp_path):
-    import tkinter.simpledialog as sd
+    sd = pytest.importorskip("tkinter.simpledialog")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.setattr(hotkey.providers, "HOME", str(tmp_path))
     monkeypatch.setattr(sd, "askstring", lambda *a, **k: "KEY123")
