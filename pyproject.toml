@@ -1,0 +1,19 @@
+[project]
+name = "draftbox"
+version = "0.2.0"
+description = "Drafts email replies for Gmail/Outlook. Never sends."
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn", "google-api-python-client", "google-auth-oauthlib", "keyring", "requests", "msal", "pillow", "pynput; sys_platform != 'win32'"]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+
+[project.scripts]
+draftbox = "draftbox.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/draftbox"]
